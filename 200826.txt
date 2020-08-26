@@ -1,2 +1,60 @@
 라즈베리파이 version 확인 (https://decode.tistory.com/37)
 pkg-config --modversion opencv
+
+라즈베리파이 카메라 연결 (http://www.rasplay.org/?p=2673)
+
+(https://docs.opencv.org/3.4.1/)
+cv::cvtColor(mat_image_org_color,mat_image_org_gray,CV_RGB2GRAY);
+cv::threshold(mat_image_org_gray,mat_image_binary,127,255,THRESH_BINARY); //127보다 큰지 작은지로 이진화
+
+Mat mat_image_binary;
+Mat mat_image_canny_edge;
+
+canny edge (https://m.blog.naver.com/samsjang/220507996391)
+
+Mat Canny_Edge_Detection(Mat img)
+{
+	Mat mat_blur_img, mat_canny_img;
+	blur(img, mat_blur_img, Size(3,3));
+	Canny(mat_blur_img,mat_canny_img,70,170,5);
+	return mat_canny_img;
+}
+
+
+lane detection and steering module with opencv and arduino (https://www.youtube.com/watch?v=8h9vU1pnNZA)
+
+허프 변환 (https://opencv-python.readthedocs.io/en/latest/doc/25.imageHoughLineTransform/imageHoughLineTransform.html)
+
+확률 허프 변환(https://opencv-python.readthedocs.io/en/latest/doc/25.imageHoughLineTransform/imageHoughLineTransform.html)
+cv2.HoughLinesP(image, rho, theta, threshold, minLineLength, maxLineGap) → lines
+
+cv설명 (https://docs.opencv.org/3.4/dc/d84/group__core__basic.html)
+
+vector<Vec4i> linesP;	//4개의 점을 int로
+HoughLinesP(mat_image_canny_edge, linesP, 1, CV_PI/180,30,30,10);
+HoughLinesP(mat_image_canny_edge, linesP, 1, CV_PI/180,100,30,10); //검출되는 선 적어짐
+HoughLinesP(mat_image_canny_edge, linesP, 1, CV_PI/180,70,30,40); //검출되는 선 정확해짐
+
+
+for(int i=0;i<linesP.size();i++)
+{
+	Vec4i L = linesP[i];
+	line(mat_image_org_color, Point(L[0],L[1]),Point(L[2],L[3]), Scalar(0,0,255), 3, LINE_AA);
+}
+
+perspective image -> bird's eye view image
+
+capture camera frames -> resize frames(option) -> remove lens distortion(라즈베리파이 생략) -> perspective transformation -> perspective mapping -> enlarging -> cropping -> create output image
+
+#define PERSPECTIVE_IMG_W 640
+#define PERSPECTIVE_IMG_H 480
+
+Point2f Source[] = {Point2f(0,0), Point2f(-300,340), Point2f(640,0), Point2f(640+300,330)};
+Point2f Destination[] = {Point2f(0,0), Point2f(0,PERSPECTIVE_IMG_H), Point2f(PERSPECTIVE_IMG_W,0), Point(PERSPECTIVE_IMG_W,PERSPECTIVE_IMG_H)};
+MAT Perspective(Mat img)
+{
+	Mat Matrix, result_img;
+	Matrix = getPerspectiveTransform(source,Destination);
+	warpPerspective(img, result_img,Matrix,Size(PERSPECTIVE_IMG_W,PERSPECTIVE_IMG_H));
+	return result_img;
+}
