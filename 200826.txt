@@ -1,0 +1,2 @@
+라즈베리파이 version 확인 (https://decode.tistory.com/37)
+pkg-config --modversion opencv
